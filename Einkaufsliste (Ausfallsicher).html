@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Einkaufsliste</title>
+    <style>
+        :root {
+            --primary: #007aff;
+            --bg: #f2f2f7;
+            --surface: #ffffff;
+            --text: #1c1c1e;
+            --text-sec: #8e8e93;
+            --border: #c6c6c8;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            /* CRITICAL: Body must be visible immediately, no opacity 0 */
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* View Management */
+        .view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+        /* Login view is active by default to prevent white screen if JS fails */
+        #login-view.active { display: flex; }
+        #app-view.active { display: flex; }
+
+        /* Login Screen */
+        .login-wrap {
+            flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px;
+        }
+        .login-card {
+            background: var(--surface); padding: 30px 20px; border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center;
+        }
+        .login-card h1 { margin-bottom: 10px; font-size: 24px; }
+        .login-card p { color: var(--text-sec); margin-bottom: 20px; font-size: 14px; }
+        
+        /* Forms & Inputs */
+        input, select {
+            width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px;
+            font-size: 16px; margin-bottom: 15px; outline: none; background: var(--surface);
+        }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        button.btn {
+            width: 100%; padding: 14px; background: var(--primary); color: white;
+            border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;
+        }
+        button.btn:active { opacity: 0.8; }
+        button.btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); margin-top: 10px; }
+        button.btn-danger { background: #ffebee; color: var(--danger); }
+
+        /* App Header */
+        header {
+            background: var(--surface); padding: 15px 20px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; z-index: 10;
+        }
+        .header-info h2 { font-size: 18px; }
+        .header-info span { font-size: 12px; color: var(--text-sec); cursor: pointer; }
+        .header-actions button { background: none; border: none; font-size: 20px; cursor: pointer; margin-left: 10px; }
+
+        /* List Area */
+        main { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 100px; }
+        .empty { text-align: center; color: var(--text-sec); margin-top: 40px; }
+        .empty span { font-size: 40px; display: block; margin-bottom: 10px; }
+
+        .item-card {
+            background: var(--surface); padding: 12px; border-radius: var(--radius);
+            margin-bottom: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .item-card.done { opacity: 0.6; }
+        .item-card.done .item-desc { text-decoration: line-through; color: var(--text-sec); }
+        
+        .check-box {
+            width: 28px; height: 28px; border: 2px solid var(--border); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 16px; cursor: pointer;
+        }
+        .item-card.done .check-box { background: var(--success); border-color: var(--success); color: white; }
+        
+        .item-content { flex: 1; cursor: pointer; }
+        .item-desc { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+        .item-meta { font-size: 12px; color: var(--text-sec); display: flex; flex-wrap: wrap; gap: 6px; }
+        .badge { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        
+        /* Floating Action Button */
+        .fab {
+            position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
+            background: var(--primary); color: white; border-radius: 30px; border: none;
+            font-size: 28px; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,122,255,0.4); cursor: pointer; z-index: 20;
+        }
+
+        /* Modal */
+        .modal-bg {
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5); z-index: 30;
+        }
+        .modal-content {
+            position: fixed; bottom: -100%; left: 0; width: 100vw; max-height: 90vh;
+            background: var(--surface); border-radius: 20px 20px 0 0; z-index: 40;
+            transition: bottom 0.3s; display: flex; flex-direction: column;
+        }
+        .modal-content.show { bottom: 0; }
+        .modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-weight: bold; }
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; padding-bottom: 40px; }
+        
+        .flex-row { display: flex; gap: 10px; }
+        .flex-row > div { flex: 1; }
+        label { display: block; font-size: 12px; color: var(--text-sec); margin-bottom: 4px; font-weight: 600; }
+
+        /* Toast Messages (Replacement for alert) */
+        #toast-container {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; gap: 10px; z-index: 9999; pointer-events: none;
+        }
+        .toast {
+            background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 20px;
+            font-size: 14px; opacity: 0; transition: opacity 0.3s; text-align: center;
+        }
+        .toast.visible { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <!-- View 1: Login -->
+    <div id="login-view" class="view active">
+        <div class="login-wrap">
+            <div class="login-card">
+                <h1>🛒 Einkaufen</h1>
+                <p>Gruppen-Code eingeben, um Listen gemeinsam zu nutzen.</p>
+                <input type="text" id="input-group" placeholder="z.B. WG-Kueche" required>
+                <button class="btn" id="btn-login">Liste öffnen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View 2: Main App -->
+    <div id="app-view" class="view">
+        <header>
+            <div class="header-info">
+                <h2 id="display-group">Gruppe</h2>
+                <span id="btn-logout">⬅ Wechseln</span>
+            </div>
+            <div class="header-actions">
+                <button id="btn-share" title="Teilen">📤</button>
+                <button id="btn-mail" title="Als E-Mail senden">✉️</button>
+            </div>
+        </header>
+
+        <main id="list-container">
+            <!-- Items will be injected here -->
+            <div class="empty" id="empty-state">
+                <span>🛒</span>
+                <p>Nichts zu kaufen.</p>
+            </div>
+        </main>
+
+        <button class="fab" id="btn-add">➕</button>
+    </div>
+
+    <!-- Modal: Add/Edit Item -->
+    <div class="modal-bg" id="modal-bg"></div>
+    <div class="modal-content" id="modal">
+        <div class="modal-header">
+            <span id="modal-title">Artikel bearbeiten</span>
+            <span id="btn-close-modal" style="cursor:pointer; color:var(--text-sec);">✖</span>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="f-id">
+            <input type="hidden" id="f-status">
+            <input type="hidden" id="f-date">
+
+            <datalist id="dl-store"></datalist>
+            <datalist id="dl-assignee"></datalist>
+
+            <div class="flex-row">
+                <div style="flex: 2;">
+                    <label>Was? *</label>
+                    <input type="text" id="f-desc" placeholder="z.B. Milch" required>
+                </div>
+                <div>
+                    <label>Menge</label>
+                    <input type="text" id="f-qty" placeholder="2 L">
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div>
+                    <label>Laden</label>
+                    <input type="text" id="f-store" list="dl-store" placeholder="Wo?">
+                </div>
+                <div>
+                    <label>Prio</label>
+                    <select id="f-prio">
+                        <option value="Normal">Normal</option>
+                        <option value="Hoch">Hoch</option>
+                        <option value="Niedrig">Niedrig</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div>
+                    <label>Kategorie</label>
+                    <select id="f-cat">
+                        <option value="Essen">Essen</option>
+                        <option value="Haushalt">Haushalt</option>
+                        <option value="Drogerie">Drogerie</option>
+                        <option value="Sonstiges">Sonstiges</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Bis wann?</label>
+                    <input type="date" id="f-deadline">
+                </div>
+            </div>
+
+            <div style="background: var(--bg); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                <label>👤 Wer kauft ein?</label>
+                <input type="text" id="f-assignee" list="dl-assignee" placeholder="Name">
+                <input type="email" id="f-email" placeholder="E-Mail (für Benachrichtigung)">
+            </div>
+
+            <button class="btn" id="btn-save">💾 Speichern</button>
+            <button class="btn btn-danger" id="btn-delete" style="display:none;">🗑️ Löschen</button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        /** 
+         * SAFE STORAGE WRAPPER
+         * Prevents the app from crashing (White Screen) if the browser/iframe 
+         * blocks access to localStorage via SecurityError.
+         */
+        const SafeStorage = {
+            memory: {},
+            get: function(key) {
+                try { return localStorage.getItem(key) || this.memory[key] || null; } 
+                catch (e) { return this.memory[key] || null; }
+            },
+            set: function(key, value) {
+                this.memory[key] = value;
+                try { localStorage.setItem(key, value); } catch (e) {}
+            },
+            remove: function(key) {
+                delete this.memory[key];
+                try { localStorage.removeItem(key); } catch (e) {}
+            }
+        };
+
+        // App State
+        let currentGroup = null;
+        let items = [];
+        let deleteConfirmStep = false; // Used to avoid window.confirm()
+
+        // DOM Elements
+        const viewLogin = document.getElementById('login-view');
+        const viewApp = document.getElementById('app-view');
+        const inputGroup = document.getElementById('input-group');
+        const listContainer = document.getElementById('list-container');
+        const emptyState = document.getElementById('empty-state');
+        const toastContainer = document.getElementById('toast-container');
+        
+        // Modal Elements
+        const modalBg = document.getElementById('modal-bg');
+        const modal = document.getElementById('modal');
+        const btnDelete = document.getElementById('btn-delete');
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            toastContainer.appendChild(t);
+            setTimeout(() => t.classList.add('visible'), 10);
+            setTimeout(() => {
+                t.classList.remove('visible');
+                setTimeout(() => t.remove(), 300);
+            }, 3000);
+        }
+
+        function switchView(viewId) {
+            viewLogin.classList.remove('active');
+            viewApp.classList.remove('active');
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function getStorageKey() {
+            return 'list_' + currentGroup;
+        }
+
+        function loadData() {
+            const data = SafeStorage.get(getStorageKey());
+            items = data ? JSON.parse(data) : [];
+            updateDatalists();
+            renderList();
+        }
+
+        function saveData() {
+            SafeStorage.set(getStorageKey(), JSON.stringify(items));
+            updateDatalists();
+            renderList();
+        }
+
+        function updateDatalists() {
+            const stores = new Set();
+            const assignees = new Set();
+            items.forEach(i => {
+                if (i.store) stores.add(i.store);
+                if (i.assignee) assignees.add(i.assignee);
+            });
+            document.getElementById('dl-store').innerHTML = Array.from(stores).map(s => `<option value="${s}">`).join('');
+            document.getElementById('dl-assignee').innerHTML = Array.from(assignees).map(a => `<option value="${a}">`).join('');
+        }
+
+        function renderList() {
+            const cards = listContainer.querySelectorAll('.item-card');
+            cards.forEach(c => c.remove());
+
+            if (items.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            // Sort: open items first
+            const sortedItems = [...items].sort((a, b) => {
+                if (a.status === b.status) return 0;
+                return a.status === 'open' ? -1 : 1;
+            });
+
+            sortedItems.forEach(item => {
+                const isDone = item.status === 'done';
+                const card = document.createElement('div');
+                card.className = 'item-card ' + (isDone ? 'done' : '');
+                
+                let meta = '';
+                if (item.quantity) meta += `<span class="badge">⚖️ ${item.quantity}</span>`;
+                if (item.store) meta += `<span class="badge">🏪 ${item.store}</span>`;
+                if (item.assignee) meta += `<span class="badge">👤 ${item.assignee}</span>`;
+                if (item.priority === 'Hoch') meta += `<span class="badge" style="color:var(--danger)">🔥 Hoch</span>`;
+
+                card.innerHTML = `
+                    <div class="check-box">${isDone ? '✓' : ''}</div>
+                    <div class="item-content">
+                        <div class="item-desc">${item.desc}</div>
+                        <div class="item-meta">${meta}</div>
+                    </div>
+                `;
+
+                // Event Listeners
+                card.querySelector('.check-box').onclick = (e) => {
+                    e.stopPropagation();
+                    item.status = isDone ? 'open' : 'done';
+                    saveData();
+                };
+
+                card.querySelector('.item-content').onclick = () => openModal(item);
+                
+                listContainer.appendChild(card);
+            });
+        }
+
+        function openModal(item = null) {
+            deleteConfirmStep = false;
+            
+            if (item) {
+                document.getElementById('modal-title').textContent = 'Bearbeiten';
+                document.getElementById('f-id').value = item.id;
+                document.getElementById('f-status').value = item.status;
+                document.getElementById('f-date').value = item.date;
+                document.getElementById('f-desc').value = item.desc || '';
+                document.getElementById('f-qty').value = item.quantity || '';
+                document.getElementById('f-store').value = item.store || '';
+                document.getElementById('f-prio').value = item.priority || 'Normal';
+                document.getElementById('f-cat').value = item.category || 'Essen';
+                document.getElementById('f-deadline').value = item.deadline || '';
+                document.getElementById('f-assignee').value = item.assignee || '';
+                document.getElementById('f-email').value = item.email || '';
+                
+                btnDelete.style.display = 'block';
+                btnDelete.textContent = '🗑️ Löschen';
+                btnDelete.className = 'btn btn-danger';
+            } else {
+                document.getElementById('modal-title').textContent = 'Neu';
+                document.getElementById('f-id').value = '';
+                document.getElementById('f-status').value = 'open';
+                document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('f-desc').value = '';
+                document.getElementById('f-qty').value = '';
+                document.getElementById('f-store').value = '';
+                document.getElementById('f-prio').value = 'Normal';
+                document.getElementById('f-cat').value = 'Essen';
+                document.getElementById('f-deadline').value = '';
+                document.getElementById('f-assignee').value = '';
+                document.getElementById('f-email').value = '';
+                
+                btnDelete.style.display = 'none';
+            }
+
+            modalBg.style.display = 'block';
+            setTimeout(() => modal.classList.add('show'), 10);
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+            setTimeout(() => modalBg.style.display = 'none', 300);
+        }
+
+        // Setup Event Listeners
+        document.getElementById('btn-login').onclick = () => {
+            const val = inputGroup.value.trim();
+            if (val) {
+                currentGroup = val;
+                SafeStorage.set('lastGrp', val);
+                document.getElementById('display-group').textContent = '🛒 ' + val;
+                loadData();
+                switchView('app-view');
+            } else {
+                showToast('Bitte Code eingeben');
+            }
+        };
+
+        document.getElementById('btn-logout').onclick = () => {
+            currentGroup = null;
+            SafeStorage.remove('lastGrp');
+            inputGroup.value = '';
+            switchView('login-view');
+        };
+
+        document.getElementById('btn-add').onclick = () => openModal();
+        document.getElementById('btn-close-modal').onclick = closeModal;
+        modalBg.onclick = closeModal;
+
+        document.getElementById('btn-save').onclick = () => {
+            const desc = document.getElementById('f-desc').value.trim();
+            if (!desc) return showToast('Was soll gekauft werden?');
+
+            const id = document.getElementById('f-id').value;
+            const itemData = {
+                id: id || Date.now().toString(),
+                status: document.getElementById('f-status').value,
+                date: document.getElementById('f-date').value,
+                desc: desc,
+                quantity: document.getElementById('f-qty').value.trim(),
+                store: document.getElementById('f-store').value.trim(),
+                priority: document.getElementById('f-prio').value,
+                category: document.getElementById('f-cat').value,
+                deadline: document.getElementById('f-deadline').value,
+                assignee: document.getElementById('f-assignee').value.trim(),
+                email: document.getElementById('f-email').value.trim()
+            };
+
+            if (id) {
+                const idx = items.findIndex(i => i.id === id);
+                if (idx > -1) items[idx] = itemData;
+            } else {
+                items.push(itemData);
+            }
+
+            saveData();
+            closeModal();
+            showToast('Gespeichert');
+        };
+
+        // Custom delete confirmation without window.confirm()
+        btnDelete.onclick = () => {
+            if (!deleteConfirmStep) {
+                deleteConfirmStep = true;
+                btnDelete.textContent = 'Sicher? Nochmal tippen!';
+                btnDelete.className = 'btn'; 
+                btnDelete.style.backgroundColor = '#ff3b30'; // Red
+                setTimeout(() => {
+                    deleteConfirmStep = false;
+                    btnDelete.textContent = '🗑️ Löschen';
+                    btnDelete.className = 'btn btn-danger';
+                }, 3000);
+            } else {
+                const id = document.getElementById('f-id').value;
+                items = items.filter(i => i.id !== id);
+                saveData();
+                closeModal();
+                showToast('Gelöscht');
+            }
+        };
+
+        // Header Actions
+        document.getElementById('btn-share').onclick = () => {
+            const url = window.location.href.split('?')[0] + '?g=' + encodeURIComponent(currentGroup);
+            try {
+                // Clipboard API doesn't always work in iframes, fallback logic
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('Link kopiert!');
+                }).catch(() => {
+                    const temp = document.createElement("input");
+                    temp.value = url;
+                    document.body.appendChild(temp);
+                    temp.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(temp);
+                    showToast('Link kopiert!');
+                });
+            } catch(e) {
+                showToast('Teilen fehlgeschlagen.');
+            }
+        };
+
+        document.getElementById('btn-mail').onclick = () => {
+            const openItems = items.filter(i => i.status === 'open');
+            if(openItems.length === 0) return showToast('Nichts zu besorgen.');
+            
+            const to = Array.from(new Set(items.map(i => i.email).filter(e => e))).join(',');
+            let body = 'Offene Besorgungen:\n\n';
+            openItems.forEach(i => { body += `- ${i.desc} ${i.quantity ? '('+i.quantity+')' : ''}\n`; });
+            window.location.href = `mailto:${to}?subject=Einkaufsliste&body=${encodeURIComponent(body)}`;
+        };
+
+        // App Initialization
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const urlGrp = params.get('g');
+            const savedGrp = SafeStorage.get('lastGrp');
+
+            if (urlGrp) {
+                inputGroup.value = urlGrp;
+                document.getElementById('btn-login').click();
+            } else if (savedGrp) {
+                inputGroup.value = savedGrp;
+                document.getElementById('btn-login').click();
+            }
+        };
+    </script>
+</body>
+</html>
