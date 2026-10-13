@@ -15,6 +15,7 @@
       --danger: #ef4444;
       --success: #10b981;
       --warning: #f59e0b;
+      --edit: #0ea5e9;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -78,7 +79,9 @@
 
     .btn-secondary { background: #64748b; }
     .btn-danger { background: var(--danger); }
-    .btn-small { padding: 6px 12px; font-size: 0.85rem; width: auto; }
+    .btn-edit { background: var(--edit); }
+    .btn-success { background: var(--success); margin-bottom: 15px; }
+    .btn-small { padding: 6px 10px; font-size: 0.85rem; width: auto; }
 
     /* Einkaufsliste Status & Items */
     .item-list { list-style: none; }
@@ -119,7 +122,7 @@
     .status-Besorgt { background: #e0e7ff; color: #3730a3; }
     .status-Erledigt { background: #dcfce7; color: #166534; }
 
-    .actions { display: flex; gap: 6px; }
+    .actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 
     .hidden { display: none !important; }
     
@@ -168,9 +171,9 @@
   <!-- Hauptansicht -->
   <div class="container hidden" id="main-app">
     
-    <!-- Formular zum Hinzufügen -->
-    <div class="card">
-      <h3 style="margin-bottom: 12px; font-size: 1.05rem;">Neuer Artikel</h3>
+    <!-- Formular zum Hinzufügen / Bearbeiten -->
+    <div class="card" id="form-card">
+      <h3 id="form-title" style="margin-bottom: 12px; font-size: 1.05rem;">Neuer Artikel</h3>
       
       <div class="form-group">
         <label for="item-name">Artikel Name *</label>
@@ -222,12 +225,21 @@
         </div>
       </div>
 
-      <button id="add-item-btn">Artikel Hinzufügen</button>
+      <div class="row">
+        <button id="add-item-btn" class="col">Artikel Hinzufügen</button>
+        <button id="cancel-edit-btn" class="col btn-secondary hidden">Abbrechen</button>
+      </div>
     </div>
 
     <!-- Einkaufsliste -->
     <div class="card">
-      <h3 style="margin-bottom: 12px; font-size: 1.05rem;">Einkaufsliste</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-size: 1.05rem;">Einkaufsliste</h3>
+      </div>
+      
+      <!-- Button für globale Mail -->
+      <button id="send-all-btn" class="btn-success">📧 Offene Liste per Mail senden</button>
+
       <ul class="item-list" id="shopping-list"></ul>
       <p id="empty-info" style="text-align: center; color: #94a3b8; padding: 20px 0;">Keine Artikel vorhanden.</p>
     </div>
@@ -254,6 +266,8 @@
     const db = getDatabase(app);
 
     let activeGroup = "";
+    let editItemId = null;
+    let currentListData = null;
 
     const loginOverlay = document.getElementById("login-overlay");
     const mainHeader = document.getElementById("main-header");
@@ -264,6 +278,7 @@
     const shareBtn = document.getElementById("share-btn");
     const displayGroup = document.getElementById("display-group");
 
+    const formTitle = document.getElementById("form-title");
     const itemName = document.getElementById("item-name");
     const itemQty = document.getElementById("item-qty");
     const itemStore = document.getElementById("item-store");
@@ -272,6 +287,8 @@
     const itemEmail = document.getElementById("item-email");
     const itemPriority = document.getElementById("item-priority");
     const addItemBtn = document.getElementById("add-item-btn");
+    const cancelEditBtn = document.getElementById("cancel-edit-btn");
+    const sendAllBtn = document.getElementById("send-all-btn");
     
     const shoppingList = document.getElementById("shopping-list");
     const emptyInfo = document.getElementById("empty-info");
@@ -324,8 +341,8 @@
     function initRealtimeSync() {
       const itemsRef = ref(db, `groups/${activeGroup}/items`);
       onValue(itemsRef, (snapshot) => {
-        const data = snapshot.val();
-        renderItems(data);
+        currentListData = snapshot.val();
+        renderItems(currentListData);
       });
 
       const emailsRef = ref(db, `groups/${activeGroup}/emails`);
@@ -335,6 +352,46 @@
       });
     }
 
+    sendAllBtn.addEventListener("click", () => {
+      if (!currentListData) return alert("Die Liste ist leer.");
+      
+      const openItems = Object.values(currentListData).filter(item => !item.completed && item.status !== "Erledigt");
+      
+      if (openItems.length === 0) return alert("Es gibt keine offenen Artikel zum Versenden!");
+
+      let bodyText = "Hallo!\n\nHier ist unsere aktuelle Einkaufsliste:\n\n";
+      
+      openItems.forEach(item => {
+        bodyText += `- ${item.name}`;
+        if (item.qty) bodyText += ` (${item.qty})`;
+        if (item.store) bodyText += ` [${item.store}]`;
+        if (item.due) bodyText += ` - Bis: ${formatDate(item.due)}`;
+        if (item.priority === "Hoch") bodyText += ` ❗WICHTIG`;
+        bodyText += "\n";
+      });
+
+      bodyText += "\nViele Grüße!";
+      
+      window.location.href = `mailto:?subject=Aktuelle Einkaufsliste&body=${encodeURIComponent(bodyText)}`;
+    });
+
+    function resetForm() {
+      editItemId = null;
+      formTitle.textContent = "Neuer Artikel";
+      addItemBtn.textContent = "Artikel Hinzufügen";
+      cancelEditBtn.classList.add("hidden");
+      
+      itemName.value = "";
+      itemQty.value = "";
+      itemStore.value = "";
+      itemDue.value = "";
+      itemStatus.value = "Offen";
+      itemEmail.value = "";
+      itemPriority.value = "Normal";
+    }
+
+    cancelEditBtn.addEventListener("click", resetForm);
+
     addItemBtn.addEventListener("click", () => {
       const name = itemName.value.trim();
       if (!name) return alert("Bitte mindestens einen Artikelnamen eingeben.");
@@ -342,7 +399,7 @@
       const emailVal = itemEmail.value.trim();
       const statusVal = itemStatus.value;
 
-      const newItem = {
+      const itemData = {
         name: name,
         qty: itemQty.value.trim(),
         store: itemStore.value.trim(),
@@ -354,20 +411,18 @@
         timestamp: Date.now()
       };
 
-      const itemsRef = ref(db, `groups/${activeGroup}/items`);
-      push(itemsRef, newItem);
+      if (editItemId) {
+        update(ref(db, `groups/${activeGroup}/items/${editItemId}`), itemData);
+      } else {
+        push(ref(db, `groups/${activeGroup}/items`), itemData);
+      }
 
       if (emailVal) {
         const safeEmailKey = emailVal.replace(/[\.\#\$\[\]]/g, "_");
         set(ref(db, `groups/${activeGroup}/emails/${safeEmailKey}`), emailVal);
       }
 
-      itemName.value = "";
-      itemQty.value = "";
-      itemStore.value = "";
-      itemDue.value = "";
-      itemStatus.value = "Offen";
-      itemEmail.value = "";
+      resetForm();
     });
 
     function renderItems(data) {
@@ -402,7 +457,8 @@
             </div>
           </div>
           <div class="actions">
-            <button class="btn-small btn-secondary mail-btn" title="Per E-Mail senden">✉️</button>
+            <button class="btn-small btn-edit edit-btn" title="Bearbeiten">✏️</button>
+            <button class="btn-small btn-secondary mail-btn" title="Diesen Artikel per E-Mail senden">✉️</button>
             <button class="btn-small btn-danger delete-btn" title="Löschen">🗑️</button>
           </div>
         `;
@@ -413,6 +469,23 @@
             completed: checked,
             status: checked ? "Erledigt" : "Offen"
           });
+        });
+
+        li.querySelector(".edit-btn").addEventListener("click", () => {
+          editItemId = key;
+          formTitle.textContent = "Artikel bearbeiten";
+          addItemBtn.textContent = "Änderungen speichern";
+          cancelEditBtn.classList.remove("hidden");
+
+          itemName.value = item.name || "";
+          itemQty.value = item.qty || "";
+          itemStore.value = item.store || "";
+          itemDue.value = item.due || "";
+          itemStatus.value = item.status || "Offen";
+          itemEmail.value = item.email || "";
+          itemPriority.value = item.priority || "Normal";
+
+          window.scrollTo({ top: 0, behavior: "smooth" });
         });
 
         li.querySelector(".mail-btn").addEventListener("click", () => {
@@ -432,7 +505,10 @@
         });
 
         li.querySelector(".delete-btn").addEventListener("click", () => {
-          remove(ref(db, `groups/${activeGroup}/items/${key}`));
+          if (confirm("Möchtest du diesen Artikel wirklich löschen?")) {
+             remove(ref(db, `groups/${activeGroup}/items/${key}`));
+             if (editItemId === key) resetForm();
+          }
         });
 
         shoppingList.appendChild(li);
