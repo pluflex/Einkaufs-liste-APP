@@ -8,110 +8,110 @@
     :root {
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
-      --bg: #f8fafc;
+      --bg: #f1f5f9;
       --card-bg: #ffffff;
       --text: #0f172a;
       --border: #e2e8f0;
       --danger: #ef4444;
       --success: #10b981;
-      --warning: #f59e0b;
-      --edit: #0ea5e9;
+      --edit: #0284c7;
+      --radius: 14px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); padding-bottom: 40px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 90px; }
 
+    /* Header */
     header {
-      background: var(--primary);
-      color: white;
-      padding: 16px;
+      background: var(--card-bg);
+      color: var(--text);
+      padding: 14px 18px;
       position: sticky;
       top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+    h1 { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+    .group-badge { font-size: 0.75rem; background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
 
-    h1 { font-size: 1.25rem; font-weight: 700; }
-    .group-badge { font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; }
+    .container { max-width: 600px; margin: 0 auto; padding: 14px; }
 
-    .container { max-width: 600px; margin: 0 auto; padding: 16px; }
-
-    .card {
+    /* Filterleiste & Schnellaktionen */
+    .filter-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .filter-btn {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      color: #64748b;
       border: 1px solid var(--border);
-    }
-
-    .form-group { margin-bottom: 12px; }
-    label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: #475569; }
-    input, select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 1rem;
-      outline: none;
-    }
-    input:focus, select:focus { border-color: var(--primary); }
-
-    .row { display: flex; gap: 10px; }
-    .col { flex: 1; }
-
-    button {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 1rem;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      white-space: nowrap;
+      transition: all 0.2s;
     }
-    button:active { background: var(--primary-hover); }
+    .filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
 
-    .btn-secondary { background: #64748b; }
-    .btn-danger { background: var(--danger); }
-    .btn-edit { background: var(--edit); }
-    .btn-success { background: var(--success); margin-bottom: 15px; }
-    .btn-small { padding: 6px 10px; font-size: 0.85rem; width: auto; }
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
 
-    /* Einkaufsliste Status & Items */
+    /* Karten & Listen */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      border: 1px solid var(--border);
+    }
+
     .item-list { list-style: none; }
     .item-card {
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      padding: 12px;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border);
+      transition: opacity 0.2s;
     }
     .item-card:last-child { border-bottom: none; }
     
     .item-checkbox {
       width: 22px;
       height: 22px;
+      margin-top: 2px;
       cursor: pointer;
       accent-color: var(--success);
-      margin-top: 3px;
     }
 
     .item-details { flex: 1; }
-    .item-title { font-weight: 600; font-size: 1rem; }
+    .item-title { font-weight: 600; font-size: 1rem; color: #1e293b; }
     .item-meta { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     
     .completed .item-title { text-decoration: line-through; color: #94a3b8; }
     
     .badge {
       display: inline-block;
-      padding: 2px 6px;
-      border-radius: 4px;
+      padding: 2px 7px;
+      border-radius: 6px;
       font-size: 0.75rem;
       font-weight: 600;
     }
@@ -122,14 +122,127 @@
     .status-Besorgt { background: #e0e7ff; color: #3730a3; }
     .status-Erledigt { background: #dcfce7; color: #166534; }
 
-    .actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+    .actions { display: flex; gap: 4px; justify-content: flex-end; }
+    .btn-icon {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 6px 9px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-icon:hover { background: #f1f5f9; }
 
-    .hidden { display: none !important; }
-    
-    /* Login overlay */
+    /* Schwebender Plus-Button (FAB) */
+    .fab-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 58px;
+      height: 58px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 2rem;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.4);
+      cursor: pointer;
+      z-index: 90;
+      transition: transform 0.15s, background 0.2s;
+    }
+    .fab-btn:active { transform: scale(0.92); background: var(--primary-hover); }
+
+    /* Modal / Pop-Up für Hinzufügen & Bearbeiten */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 600px;
+      border-radius: 20px 20px 0 0;
+      padding: 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+      transform: translateY(100%);
+      transition: transform 0.25s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-overlay.open .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-header h3 { font-size: 1.15rem; font-weight: 700; }
+    .close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.4rem;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* Formulare & Eingaben */
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 4px; color: #475569; }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      background: #ffffff;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+
+    .row { display: flex; gap: 10px; }
+    .col { flex: 1; }
+
+    .btn {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:active { background: var(--primary-hover); }
+    .btn-secondary { background: #64748b; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: #334155; }
+    .btn-small { padding: 6px 12px; font-size: 0.8rem; width: auto; }
+
+    /* Login Screen */
     #login-overlay {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      inset: 0;
       background: var(--bg);
       z-index: 200;
       display: flex;
@@ -137,44 +250,96 @@
       justify-content: center;
       padding: 20px;
     }
+    .login-card {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 380px;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <!-- Login Maske -->
+  <!-- Login Maske mit Gruppen-PIN Schutz -->
   <div id="login-overlay">
-    <div class="card" style="width: 100%; max-width: 400px;">
-      <h2 style="margin-bottom: 10px;">Einkaufsliste Gruppe</h2>
-      <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 16px;">
-        Gib einen Gruppennamen ein, um eure gemeinsame Liste zu öffnen.
+    <div class="login-card">
+      <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">Einkaufsliste</h2>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 18px;">
+        Tritt eurer Gruppe mit Code und PIN bei. Falls die Gruppe neu ist, legt euer PIN das Gruppenpasswort fest.
       </p>
+
       <div class="form-group">
-        <label for="group-input">Gruppen-Code (z. B. Familie):</label>
-        <input type="text" id="group-input" placeholder="z. B. Familie123">
+        <label for="group-input">Gruppen-Name / Code</label>
+        <input type="text" id="group-input" placeholder="z. B. Familie" autocomplete="off" required>
       </div>
-      <button id="login-btn">Liste öffnen</button>
+
+      <div class="form-group">
+        <label for="group-pin">Gruppen-PIN / Passwort</label>
+        <input type="password" id="group-pin" placeholder="z. B. 1234" autocomplete="off" required>
+      </div>
+
+      <p id="login-error" style="color: var(--danger); font-size: 0.82rem; margin-bottom: 10px;" class="hidden"></p>
+
+      <button id="login-btn" class="btn">Gruppe öffnen</button>
     </div>
   </div>
 
   <!-- Header -->
   <header id="main-header" class="hidden">
-    <div>
+    <div style="display: flex; align-items: center; gap: 10px;">
       <h1>Einkaufsliste</h1>
       <span class="group-badge" id="display-group"></span>
     </div>
-    <div style="display: flex; gap: 8px;">
-      <button class="btn-small btn-secondary" id="share-btn">Teilen</button>
-      <button class="btn-small btn-secondary" id="logout-btn">Wechseln</button>
+    <div style="display: flex; gap: 6px;">
+      <button class="btn-icon" id="share-btn" title="Link teilen">🔗</button>
+      <button class="btn-icon" id="logout-btn" title="Gruppe wechseln">🚪</button>
     </div>
   </header>
 
-  <!-- Hauptansicht -->
+  <!-- Hauptansicht (Liste im Fokus) -->
   <div class="container hidden" id="main-app">
     
-    <!-- Formular zum Hinzufügen / Bearbeiten -->
-    <div class="card" id="form-card">
-      <h3 id="form-title" style="margin-bottom: 12px; font-size: 1.05rem;">Neuer Artikel</h3>
-      
+    <!-- Filterleiste -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-filter="all">Alle Artikel</button>
+      <button class="filter-btn" data-filter="open">Nur Offene</button>
+      <button class="filter-btn" data-filter="done">Erledigt</button>
+    </div>
+
+    <!-- Schnellaktionen -->
+    <div class="top-actions">
+      <span id="item-counter" style="font-size: 0.85rem; color: #64748b; font-weight: 600;">0 Artikel</span>
+      <button id="send-all-btn" class="btn-icon" style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+        📧 Offene Liste senden
+      </button>
+    </div>
+
+    <!-- Die Einkaufsliste -->
+    <div class="card" style="padding: 6px 14px;">
+      <ul class="item-list" id="shopping-list"></ul>
+      <p id="empty-info" style="text-align: center; color: #94a3b8; padding: 30px 0; font-size: 0.9rem;">
+        Keine Artikel in dieser Ansicht vorhanden.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Schwebender Button zum Hinzufügen (FAB) -->
+  <button id="open-add-btn" class="fab-btn hidden" title="Neuen Artikel hinzufügen">+</button>
+
+  <!-- Pop-Up Modal für Artikel anlegen / bearbeiten -->
+  <div class="modal-overlay" id="item-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Neuer Artikel</h3>
+        <button class="close-btn" id="close-modal-btn">&times;</button>
+      </div>
+
       <div class="form-group">
         <label for="item-name">Artikel Name *</label>
         <input type="text" id="item-name" placeholder="z. B. Milch, Brot..." required>
@@ -225,31 +390,17 @@
         </div>
       </div>
 
-      <div class="row">
-        <button id="add-item-btn" class="col">Artikel Hinzufügen</button>
-        <button id="cancel-edit-btn" class="col btn-secondary hidden">Abbrechen</button>
+      <div style="display: flex; gap: 8px; margin-top: 8px;">
+        <button id="save-item-btn" class="btn">Artikel Hinzufügen</button>
+        <button id="cancel-item-btn" class="btn btn-outline">Abbrechen</button>
       </div>
     </div>
-
-    <!-- Einkaufsliste -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 1.05rem;">Einkaufsliste</h3>
-      </div>
-      
-      <!-- Button für globale Mail -->
-      <button id="send-all-btn" class="btn-success">📧 Offene Liste per Mail senden</button>
-
-      <ul class="item-list" id="shopping-list"></ul>
-      <p id="empty-info" style="text-align: center; color: #94a3b8; padding: 20px 0;">Keine Artikel vorhanden.</p>
-    </div>
-
   </div>
 
   <!-- Firebase Web SDK v10 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, push, set, get, child, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBK_Mcm6OzUcTNJ8a6_eJ38er_WQVd_Kgc",
@@ -268,17 +419,31 @@
     let activeGroup = "";
     let editItemId = null;
     let currentListData = null;
+    let currentFilter = "all"; // "all" | "open" | "done"
 
+    // DOM-Referenzen
     const loginOverlay = document.getElementById("login-overlay");
+    const groupInput = document.getElementById("group-input");
+    const groupPin = document.getElementById("group-pin");
+    const loginBtn = document.getElementById("login-btn");
+    const loginError = document.getElementById("login-error");
+
     const mainHeader = document.getElementById("main-header");
     const mainApp = document.getElementById("main-app");
-    const groupInput = document.getElementById("group-input");
-    const loginBtn = document.getElementById("login-btn");
-    const logoutBtn = document.getElementById("logout-btn");
-    const shareBtn = document.getElementById("share-btn");
+    const openAddBtn = document.getElementById("open-add-btn");
     const displayGroup = document.getElementById("display-group");
+    const shareBtn = document.getElementById("share-btn");
+    const logoutBtn = document.getElementById("logout-btn");
+    const itemCounter = document.getElementById("item-counter");
 
-    const formTitle = document.getElementById("form-title");
+    // Modal
+    const itemModal = document.getElementById("item-modal");
+    const modalTitle = document.getElementById("modal-title");
+    const closeModalBtn = document.getElementById("close-modal-btn");
+    const cancelItemBtn = document.getElementById("cancel-item-btn");
+    const saveItemBtn = document.getElementById("save-item-btn");
+
+    // Formular
     const itemName = document.getElementById("item-name");
     const itemQty = document.getElementById("item-qty");
     const itemStore = document.getElementById("item-store");
@@ -286,254 +451,103 @@
     const itemStatus = document.getElementById("item-status");
     const itemEmail = document.getElementById("item-email");
     const itemPriority = document.getElementById("item-priority");
-    const addItemBtn = document.getElementById("add-item-btn");
-    const cancelEditBtn = document.getElementById("cancel-edit-btn");
-    const sendAllBtn = document.getElementById("send-all-btn");
-    
-    const shoppingList = document.getElementById("shopping-list");
-    const emptyInfo = document.getElementById("empty-info");
     const emailDatalist = document.getElementById("email-list");
 
-    window.addEventListener("DOMContentLoaded", () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlGroup = urlParams.get("group");
+    const shoppingList = document.getElementById("shopping-list");
+    const emptyInfo = document.getElementById("empty-info");
+    const sendAllBtn = document.getElementById("send-all-btn");
+    const filterButtons = document.querySelectorAll(".filter-btn");
+
+    // Auto-Login beim Start prüfen
+    window.addEventListener("DOMContentLoaded", async () => {
       const savedGroup = localStorage.getItem("shopping_group");
-
-      if (urlGroup) {
-        startApp(urlGroup);
-      } else if (savedGroup) {
-        startApp(savedGroup);
+      const savedPin = localStorage.getItem("shopping_pin");
+      if (savedGroup && savedPin) {
+        await verifyAndLogin(savedGroup, savedPin, true);
       }
     });
 
-    loginBtn.addEventListener("click", () => {
+    // Login-Button Event
+    loginBtn.addEventListener("click", async () => {
       const code = groupInput.value.trim();
-      if (code) startApp(code);
-    });
-
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("shopping_group");
-      location.reload();
-    });
-
-    shareBtn.addEventListener("click", () => {
-      const url = `${window.location.origin}${window.location.pathname}?group=${encodeURIComponent(activeGroup)}`;
-      if (navigator.share) {
-        navigator.share({ title: 'Einkaufsliste', url: url });
-      } else {
-        navigator.clipboard.writeText(url);
-        alert("Link in Zwischenablage kopiert!");
+      const pin = groupPin.value.trim();
+      if (!code || !pin) {
+        showError("Bitte Gruppen-Code und PIN eingeben.");
+        return;
       }
+      await verifyAndLogin(code, pin, false);
     });
 
-    function startApp(groupCode) {
-      activeGroup = groupCode.toLowerCase().replace(/[^a-z0-9]/g, "");
-      localStorage.setItem("shopping_group", activeGroup);
-      
-      displayGroup.textContent = "Gruppe: " + activeGroup;
+    async function verifyAndLogin(groupCode, pin, isAutoLogin) {
+      const cleanGroup = groupCode.toLowerCase().replace(/[^a-z0-9]/g, "");
+      loginError.classList.add("hidden");
+
+      try {
+        const pinRef = child(ref(db), `groups/${cleanGroup}/security/pin`);
+        const snapshot = await get(pinRef);
+
+        if (snapshot.exists()) {
+          // Gruppe existiert -> PIN vergleichen
+          if (snapshot.val() === pin) {
+            startApp(cleanGroup, pin);
+          } else {
+            if (isAutoLogin) {
+              localStorage.clear();
+            } else {
+              showError("Falscher PIN für diese Gruppe!");
+            }
+          }
+        } else {
+          // Gruppe existiert noch nicht -> Mit diesem PIN neu initialisieren
+          await set(ref(db, `groups/${cleanGroup}/security/pin`), pin);
+          startApp(cleanGroup, pin);
+        }
+      } catch (err) {
+        showError("Verbindungsfehler zur Datenbank.");
+      }
+    }
+
+    function showError(msg) {
+      loginError.textContent = msg;
+      loginError.classList.remove("hidden");
+    }
+
+    function startApp(groupCode, pin) {
+      activeGroup = groupCode;
+      localStorage.setItem("shopping_group", groupCode);
+      localStorage.setItem("shopping_pin", pin);
+
+      displayGroup.textContent = activeGroup;
       loginOverlay.classList.add("hidden");
       mainHeader.classList.remove("hidden");
       mainApp.classList.remove("hidden");
+      openAddBtn.classList.remove("hidden");
 
       initRealtimeSync();
     }
 
-    function initRealtimeSync() {
-      const itemsRef = ref(db, `groups/${activeGroup}/items`);
-      onValue(itemsRef, (snapshot) => {
-        currentListData = snapshot.val();
-        renderItems(currentListData);
-      });
-
-      const emailsRef = ref(db, `groups/${activeGroup}/emails`);
-      onValue(emailsRef, (snapshot) => {
-        const emails = snapshot.val() || {};
-        renderEmailSuggestions(emails);
-      });
-    }
-
-    sendAllBtn.addEventListener("click", () => {
-      if (!currentListData) return alert("Die Liste ist leer.");
-      
-      const openItems = Object.values(currentListData).filter(item => !item.completed && item.status !== "Erledigt");
-      
-      if (openItems.length === 0) return alert("Es gibt keine offenen Artikel zum Versenden!");
-
-      let bodyText = "Hallo!\n\nHier ist unsere aktuelle Einkaufsliste:\n\n";
-      
-      openItems.forEach(item => {
-        bodyText += `- ${item.name}`;
-        if (item.qty) bodyText += ` (${item.qty})`;
-        if (item.store) bodyText += ` [${item.store}]`;
-        if (item.due) bodyText += ` - Bis: ${formatDate(item.due)}`;
-        if (item.priority === "Hoch") bodyText += ` ❗WICHTIG`;
-        bodyText += "\n";
-      });
-
-      bodyText += "\nViele Grüße!";
-      
-      window.location.href = `mailto:?subject=Aktuelle Einkaufsliste&body=${encodeURIComponent(bodyText)}`;
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("shopping_group");
+      localStorage.removeItem("shopping_pin");
+      location.reload();
     });
 
-    function resetForm() {
-      editItemId = null;
-      formTitle.textContent = "Neuer Artikel";
-      addItemBtn.textContent = "Artikel Hinzufügen";
-      cancelEditBtn.classList.add("hidden");
-      
-      itemName.value = "";
-      itemQty.value = "";
-      itemStore.value = "";
-      itemDue.value = "";
-      itemStatus.value = "Offen";
-      itemEmail.value = "";
-      itemPriority.value = "Normal";
-    }
-
-    cancelEditBtn.addEventListener("click", resetForm);
-
-    addItemBtn.addEventListener("click", () => {
-      const name = itemName.value.trim();
-      if (!name) return alert("Bitte mindestens einen Artikelnamen eingeben.");
-
-      const emailVal = itemEmail.value.trim();
-      const statusVal = itemStatus.value;
-
-      const itemData = {
-        name: name,
-        qty: itemQty.value.trim(),
-        store: itemStore.value.trim(),
-        due: itemDue.value,
-        status: statusVal,
-        email: emailVal,
-        priority: itemPriority.value,
-        completed: statusVal === "Erledigt",
-        timestamp: Date.now()
-      };
-
-      if (editItemId) {
-        update(ref(db, `groups/${activeGroup}/items/${editItemId}`), itemData);
+    shareBtn.addEventListener("click", () => {
+      const url = `${window.location.origin}${window.location.pathname}`;
+      const text = `Unsere Einkaufsliste:\nGruppe: ${activeGroup}\nPIN erfährst du privat!`;
+      if (navigator.share) {
+        navigator.share({ title: 'Einkaufsliste', text: text, url: url });
       } else {
-        push(ref(db, `groups/${activeGroup}/items`), itemData);
+        navigator.clipboard.writeText(`${url} (Gruppe: ${activeGroup})`);
+        alert("Link und Gruppenname in die Zwischenablage kopiert!");
       }
-
-      if (emailVal) {
-        const safeEmailKey = emailVal.replace(/[\.\#\$\[\]]/g, "_");
-        set(ref(db, `groups/${activeGroup}/emails/${safeEmailKey}`), emailVal);
-      }
-
-      resetForm();
     });
 
-    function renderItems(data) {
-      shoppingList.innerHTML = "";
-      if (!data) {
-        emptyInfo.style.display = "block";
-        return;
-      }
-      
-      emptyInfo.style.display = "none";
-      const keys = Object.keys(data);
-
-      keys.forEach((key) => {
-        const item = data[key];
-        const isCompleted = item.completed || item.status === "Erledigt";
-        const currentStatus = item.status || (isCompleted ? "Erledigt" : "Offen");
-
-        const li = document.createElement("li");
-        li.className = `item-card ${isCompleted ? 'completed' : ''}`;
-
-        li.innerHTML = `
-          <input type="checkbox" class="item-checkbox" ${isCompleted ? 'checked' : ''}>
-          <div class="item-details">
-            <div class="item-title">${escapeHtml(item.name)}</div>
-            <div class="item-meta">
-              ${item.qty ? `<span>${escapeHtml(item.qty)}</span> • ` : ''}
-              ${item.store ? `<span>📍 ${escapeHtml(item.store)}</span> • ` : ''}
-              ${item.due ? `<span>📅 ${formatDate(item.due)}</span> • ` : ''}
-              ${item.email ? `<span>✉️ ${escapeHtml(item.email)}</span> • ` : ''}
-              <span class="badge status-${currentStatus}">${currentStatus}</span>
-              <span class="badge priority-${item.priority || 'Normal'}">${item.priority || 'Normal'}</span>
-            </div>
-          </div>
-          <div class="actions">
-            <button class="btn-small btn-edit edit-btn" title="Bearbeiten">✏️</button>
-            <button class="btn-small btn-secondary mail-btn" title="Diesen Artikel per E-Mail senden">✉️</button>
-            <button class="btn-small btn-danger delete-btn" title="Löschen">🗑️</button>
-          </div>
-        `;
-
-        li.querySelector(".item-checkbox").addEventListener("change", (e) => {
-          const checked = e.target.checked;
-          update(ref(db, `groups/${activeGroup}/items/${key}`), {
-            completed: checked,
-            status: checked ? "Erledigt" : "Offen"
-          });
-        });
-
-        li.querySelector(".edit-btn").addEventListener("click", () => {
-          editItemId = key;
-          formTitle.textContent = "Artikel bearbeiten";
-          addItemBtn.textContent = "Änderungen speichern";
-          cancelEditBtn.classList.remove("hidden");
-
-          itemName.value = item.name || "";
-          itemQty.value = item.qty || "";
-          itemStore.value = item.store || "";
-          itemDue.value = item.due || "";
-          itemStatus.value = item.status || "Offen";
-          itemEmail.value = item.email || "";
-          itemPriority.value = item.priority || "Normal";
-
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-
-        li.querySelector(".mail-btn").addEventListener("click", () => {
-          const recipient = item.email || "";
-          const subject = encodeURIComponent(`Einkauf: ${item.name}`);
-          const body = encodeURIComponent(
-            `Hallo!\n\nBitte folgendes besorgen:\n` +
-            `- Artikel: ${item.name}\n` +
-            `- Menge: ${item.qty || 'Standard'}\n` +
-            `- Geschäft: ${item.store || 'Egal'}\n` +
-            `- Termin: ${item.due ? formatDate(item.due) : 'Kein Datum'}\n` +
-            `- Status: ${currentStatus}\n` +
-            `- Priorität: ${item.priority || 'Normal'}\n\n` +
-            `Viele Grüße!`
-          );
-          window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
-        });
-
-        li.querySelector(".delete-btn").addEventListener("click", () => {
-          if (confirm("Möchtest du diesen Artikel wirklich löschen?")) {
-             remove(ref(db, `groups/${activeGroup}/items/${key}`));
-             if (editItemId === key) resetForm();
-          }
-        });
-
-        shoppingList.appendChild(li);
+    // Realtime Listener
+    function initRealtimeSync() {
+      onValue(ref(db, `groups/${activeGroup}/items`), (snapshot) => {
+        currentListData = snapshot.val();
+        renderItems();
       });
-    }
 
-    function renderEmailSuggestions(emailsData) {
-      emailDatalist.innerHTML = "";
-      Object.values(emailsData).forEach((email) => {
-        const option = document.createElement("option");
-        option.value = email;
-        emailDatalist.appendChild(option);
-      });
-    }
-
-    function formatDate(dateStr) {
-      if (!dateStr) return "";
-      const parts = dateStr.split("-");
-      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
-      return dateStr;
-    }
-
-    function escapeHtml(str) {
-      return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
-    }
-  </script>
-</body>
-</html>
+      onValue(ref(db,
