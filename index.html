@@ -14,6 +14,7 @@
       --border: #e2e8f0;
       --danger: #ef4444;
       --success: #10b981;
+      --warning: #f59e0b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
@@ -83,7 +84,7 @@
     .item-list { list-style: none; }
     .item-card {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       padding: 12px;
       border-bottom: 1px solid var(--border);
@@ -95,13 +96,15 @@
       height: 22px;
       cursor: pointer;
       accent-color: var(--success);
+      margin-top: 3px;
     }
 
     .item-details { flex: 1; }
     .item-title { font-weight: 600; font-size: 1rem; }
-    .item-meta { font-size: 0.8rem; color: #64748b; margin-top: 2px; }
+    .item-meta { font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     
     .completed .item-title { text-decoration: line-through; color: #94a3b8; }
+    
     .badge {
       display: inline-block;
       padding: 2px 6px;
@@ -111,6 +114,12 @@
     }
     .priority-Hoch { background: #fee2e2; color: #991b1b; }
     .priority-Normal { background: #e0f2fe; color: #075985; }
+
+    .status-Offen { background: #fef3c7; color: #92400e; }
+    .status-Besorgt { background: #e0e7ff; color: #3730a3; }
+    .status-Erledigt { background: #dcfce7; color: #166534; }
+
+    .actions { display: flex; gap: 6px; }
 
     .hidden { display: none !important; }
     
@@ -175,7 +184,7 @@
         </div>
         <div class="col form-group">
           <label for="item-store">Geschäft / Laden</label>
-          <input type="text" id="item-store" list="store-list" placeholder="z. B. Aldi, Coop">
+          <input type="text" id="item-store" list="store-list" placeholder="z. B. Aldi, Rewe">
           <datalist id="store-list">
             <option value="Aldi"><option value="Lidl"><option value="Rewe">
             <option value="Edeka"><option value="Coop"><option value="Migros"><option value="DM">
@@ -185,9 +194,23 @@
 
       <div class="row">
         <div class="col form-group">
+          <label for="item-due">Termin / Bis wann?</label>
+          <input type="date" id="item-due">
+        </div>
+        <div class="col form-group">
+          <label for="item-status">Status</label>
+          <select id="item-status">
+            <option value="Offen">Offen</option>
+            <option value="Besorgt">Wird besorgt</option>
+            <option value="Erledigt">Erledigt</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col form-group">
           <label for="item-email">Wer kauft ein? (E-Mail)</label>
           <input type="email" id="item-email" list="email-list" placeholder="name@beispiel.de">
-          <!-- Dynamische E-Mail Vorschläge aus der Cloud -->
           <datalist id="email-list"></datalist>
         </div>
         <div class="col form-group">
@@ -205,9 +228,7 @@
     <!-- Einkaufsliste -->
     <div class="card">
       <h3 style="margin-bottom: 12px; font-size: 1.05rem;">Einkaufsliste</h3>
-      <ul class="item-list" id="shopping-list">
-        <!-- Einträge werden hier dynamisch eingefügt -->
-      </ul>
+      <ul class="item-list" id="shopping-list"></ul>
       <p id="empty-info" style="text-align: center; color: #94a3b8; padding: 20px 0;">Keine Artikel vorhanden.</p>
     </div>
 
@@ -218,7 +239,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, push, set, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Eigene Firebase Zugangsdaten
     const firebaseConfig = {
       apiKey: "AIzaSyBK_Mcm6OzUcTNJ8a6_eJ38er_WQVd_Kgc",
       authDomain: "einkaufsliste-b6a99.firebaseapp.com",
@@ -230,14 +250,11 @@
       measurementId: "G-YYMLK4PV6T"
     };
 
-    // Firebase App initialisieren
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Globale Variablen
     let activeGroup = "";
 
-    // DOM Elemente
     const loginOverlay = document.getElementById("login-overlay");
     const mainHeader = document.getElementById("main-header");
     const mainApp = document.getElementById("main-app");
@@ -250,6 +267,8 @@
     const itemName = document.getElementById("item-name");
     const itemQty = document.getElementById("item-qty");
     const itemStore = document.getElementById("item-store");
+    const itemDue = document.getElementById("item-due");
+    const itemStatus = document.getElementById("item-status");
     const itemEmail = document.getElementById("item-email");
     const itemPriority = document.getElementById("item-priority");
     const addItemBtn = document.getElementById("add-item-btn");
@@ -258,7 +277,6 @@
     const emptyInfo = document.getElementById("empty-info");
     const emailDatalist = document.getElementById("email-list");
 
-    // Start-Logik: URL Parameter oder localStorage prüfen
     window.addEventListener("DOMContentLoaded", () => {
       const urlParams = new URLSearchParams(window.location.search);
       const urlGroup = urlParams.get("group");
@@ -292,7 +310,7 @@
     });
 
     function startApp(groupCode) {
-      activeGroup = groupCode.toLowerCase().replace(/[^a-z0-9]/g, ""); // Bereinigen
+      activeGroup = groupCode.toLowerCase().replace(/[^a-z0-9]/g, "");
       localStorage.setItem("shopping_group", activeGroup);
       
       displayGroup.textContent = "Gruppe: " + activeGroup;
@@ -300,19 +318,16 @@
       mainHeader.classList.remove("hidden");
       mainApp.classList.remove("hidden");
 
-      // Firebase Listener starten
       initRealtimeSync();
     }
 
     function initRealtimeSync() {
-      // 1. Artikel synchronisieren
       const itemsRef = ref(db, `groups/${activeGroup}/items`);
       onValue(itemsRef, (snapshot) => {
         const data = snapshot.val();
         renderItems(data);
       });
 
-      // 2. E-Mails für Autocomplete Vorschläge synchronisieren
       const emailsRef = ref(db, `groups/${activeGroup}/emails`);
       onValue(emailsRef, (snapshot) => {
         const emails = snapshot.val() || {};
@@ -320,41 +335,41 @@
       });
     }
 
-    // Artikel eintragen
     addItemBtn.addEventListener("click", () => {
       const name = itemName.value.trim();
       if (!name) return alert("Bitte mindestens einen Artikelnamen eingeben.");
 
       const emailVal = itemEmail.value.trim();
+      const statusVal = itemStatus.value;
 
       const newItem = {
         name: name,
         qty: itemQty.value.trim(),
         store: itemStore.value.trim(),
+        due: itemDue.value,
+        status: statusVal,
         email: emailVal,
         priority: itemPriority.value,
-        completed: false,
+        completed: statusVal === "Erledigt",
         timestamp: Date.now()
       };
 
-      // In Firebase speichern
       const itemsRef = ref(db, `groups/${activeGroup}/items`);
       push(itemsRef, newItem);
 
-      // Falls eine E-Mail angegeben wurde, diese in der Vorschlagsliste speichern
       if (emailVal) {
-        const safeEmailKey = emailVal.replace(/[\.\#\$\[\]]/g, "_"); // Punkte ersetzen für Firebase Keys
+        const safeEmailKey = emailVal.replace(/[\.\#\$\[\]]/g, "_");
         set(ref(db, `groups/${activeGroup}/emails/${safeEmailKey}`), emailVal);
       }
 
-      // Felder zurücksetzen
       itemName.value = "";
       itemQty.value = "";
       itemStore.value = "";
+      itemDue.value = "";
+      itemStatus.value = "Offen";
       itemEmail.value = "";
     });
 
-    // Einkaufsliste rendern
     function renderItems(data) {
       shoppingList.innerHTML = "";
       if (!data) {
@@ -367,40 +382,55 @@
 
       keys.forEach((key) => {
         const item = data[key];
+        const isCompleted = item.completed || item.status === "Erledigt";
+        const currentStatus = item.status || (isCompleted ? "Erledigt" : "Offen");
+
         const li = document.createElement("li");
-        li.className = `item-card ${item.completed ? 'completed' : ''}`;
+        li.className = `item-card ${isCompleted ? 'completed' : ''}`;
 
         li.innerHTML = `
-          <input type="checkbox" class="item-checkbox" ${item.completed ? 'checked' : ''}>
+          <input type="checkbox" class="item-checkbox" ${isCompleted ? 'checked' : ''}>
           <div class="item-details">
             <div class="item-title">${escapeHtml(item.name)}</div>
             <div class="item-meta">
               ${item.qty ? `<span>${escapeHtml(item.qty)}</span> • ` : ''}
               ${item.store ? `<span>📍 ${escapeHtml(item.store)}</span> • ` : ''}
-              ${item.email ? `<span>✉️ ${escapeHtml(item.email)}</span>` : ''}
-              <span class="badge priority-${item.priority}">${item.priority}</span>
+              ${item.due ? `<span>📅 ${formatDate(item.due)}</span> • ` : ''}
+              ${item.email ? `<span>✉️ ${escapeHtml(item.email)}</span> • ` : ''}
+              <span class="badge status-${currentStatus}">${currentStatus}</span>
+              <span class="badge priority-${item.priority || 'Normal'}">${item.priority || 'Normal'}</span>
             </div>
           </div>
-          <button class="btn-small btn-secondary mail-btn" title="Per E-Mail senden">✉️</button>
-          <button class="btn-small btn-danger delete-btn" title="Löschen">🗑️</button>
+          <div class="actions">
+            <button class="btn-small btn-secondary mail-btn" title="Per E-Mail senden">✉️</button>
+            <button class="btn-small btn-danger delete-btn" title="Löschen">🗑️</button>
+          </div>
         `;
 
-        // Checkbox Event (Abhaken)
         li.querySelector(".item-checkbox").addEventListener("change", (e) => {
+          const checked = e.target.checked;
           update(ref(db, `groups/${activeGroup}/items/${key}`), {
-            completed: e.target.checked
+            completed: checked,
+            status: checked ? "Erledigt" : "Offen"
           });
         });
 
-        // Mail Senden Event
         li.querySelector(".mail-btn").addEventListener("click", () => {
           const recipient = item.email || "";
           const subject = encodeURIComponent(`Einkauf: ${item.name}`);
-          const body = encodeURIComponent(`Hallo!\n\nBitte folgendes einkaufen:\n- Artikel: ${item.name}\n- Menge: ${item.qty || 'Standard'}\n- Laden: ${item.store || 'Egal'}\n- Priorität: ${item.priority}\n\nViele Grüße!`);
+          const body = encodeURIComponent(
+            `Hallo!\n\nBitte folgendes besorgen:\n` +
+            `- Artikel: ${item.name}\n` +
+            `- Menge: ${item.qty || 'Standard'}\n` +
+            `- Geschäft: ${item.store || 'Egal'}\n` +
+            `- Termin: ${item.due ? formatDate(item.due) : 'Kein Datum'}\n` +
+            `- Status: ${currentStatus}\n` +
+            `- Priorität: ${item.priority || 'Normal'}\n\n` +
+            `Viele Grüße!`
+          );
           window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
         });
 
-        // Löschen Event
         li.querySelector(".delete-btn").addEventListener("click", () => {
           remove(ref(db, `groups/${activeGroup}/items/${key}`));
         });
@@ -409,7 +439,6 @@
       });
     }
 
-    // E-Mail Vorschläge rendern
     function renderEmailSuggestions(emailsData) {
       emailDatalist.innerHTML = "";
       Object.values(emailsData).forEach((email) => {
@@ -417,6 +446,13 @@
         option.value = email;
         emailDatalist.appendChild(option);
       });
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const parts = dateStr.split("-");
+      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+      return dateStr;
     }
 
     function escapeHtml(str) {
